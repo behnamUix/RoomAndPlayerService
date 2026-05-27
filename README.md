@@ -5,7 +5,7 @@
 
 <p align="center">
   <img src="shot.png" width="30%" />
-
+  <img src="shot2.png" width="30%" />
 </p>
 
 <br>
