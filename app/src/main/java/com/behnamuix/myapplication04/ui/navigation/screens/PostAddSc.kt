@@ -71,7 +71,7 @@ fun PostAddSc(
 ) {
 
 
-    val cameraLauncher =
+/*    val cameraLauncher =
         rememberLauncherForActivityResult(ActivityResultContracts.RequestPermission()) {
             if (it)
                 permVm.checkPerm(android.Manifest.permission.CAMERA)
@@ -97,7 +97,7 @@ fun PostAddSc(
         }
 
         else -> {}
-    }
+    }*/
 
     val context = LocalContext.current
     val launcher = rememberLauncherForActivityResult(
