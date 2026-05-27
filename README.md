@@ -4,7 +4,7 @@
 ## ✨ Screenshots
 
 <p align="center">
-  <img src="d9d827_26Screenshot-20260527-170724.png" width="30%" />
+  <img src="shot.png" width="30%" />
 
 </p>
 
