@@ -50,7 +50,8 @@ val workManagerModule = module {
     single { WorkManager.getInstance(get()) }
     single { NotificationWorkManager(get(), get()) }
 }
-val mediaModule = module { single { getMediaPlayer(get()) } }
+@RequiresApi(Build.VERSION_CODES.UPSIDE_DOWN_CAKE)
+val mediaModule = module { single { getMediaPlayer() } }
 
 @RequiresApi(Build.VERSION_CODES.O)
 val repositoryModule = module {

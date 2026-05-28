@@ -2,7 +2,6 @@ package com.behnamuix.myapplication04.ui.navigation.screens
 
 import android.Manifest
 import android.content.Intent
-import android.net.Uri
 import android.os.Build
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
@@ -25,14 +24,12 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.rounded.Comment
-import androidx.compose.material.icons.filled.BookmarkBorder
 import androidx.compose.material.icons.filled.DeleteOutline
 import androidx.compose.material.icons.filled.Person
 import androidx.compose.material.icons.rounded.FavoriteBorder
 import androidx.compose.material.icons.rounded.MusicNote
 import androidx.compose.material.icons.rounded.Pause
 import androidx.compose.material.icons.rounded.PlayArrow
-import androidx.compose.material.icons.rounded.Room
 import androidx.compose.material.icons.rounded.Share
 import androidx.compose.material.icons.rounded.Upload
 import androidx.compose.material3.Card
@@ -62,13 +59,15 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
+import androidx.core.net.toUri
 import androidx.navigation.NavHostController
 import coil.compose.AsyncImage
 import com.behnamuix.myapplication04.data.local.db.model.Comment
 import com.behnamuix.myapplication04.data.local.db.model.Post
-import com.behnamuix.myapplication04.ui.navigation.Screens
 import com.behnamuix.myapplication04.notification.viewModel.NotifViewModel
+import com.behnamuix.myapplication04.ui.navigation.Screens
 import com.behnamuix.myapplication04.viewModel.music.MusicViewModel
+import com.behnamuix.myapplication04.viewModel.music.MusicViewModel.PlayerState
 import com.behnamuix.myapplication04.viewModel.permission.PermissionManagerViewModel
 import com.behnamuix.myapplication04.viewModel.permission.PermissionState
 import com.behnamuix.myapplication04.viewModel.ui.comment.CommentAddViewModel
@@ -76,9 +75,8 @@ import com.behnamuix.myapplication04.viewModel.ui.comment.CommentListViewModel
 import com.behnamuix.myapplication04.viewModel.ui.post.PostFeedViewModel
 import org.koin.androidx.compose.koinViewModel
 import kotlin.random.Random
-import com.behnamuix.myapplication04.viewModel.music.MusicViewModel.PlayerState
 
-@RequiresApi(Build.VERSION_CODES.O)
+@RequiresApi(Build.VERSION_CODES.UPSIDE_DOWN_CAKE)
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun PostFeedSc(
@@ -93,6 +91,7 @@ fun PostFeedSc(
     val list by listVm.posts.collectAsState()
     val state = permVm.state.collectAsState()
 
+
     val notifLauncher =
         rememberLauncherForActivityResult(ActivityResultContracts.RequestPermission()) {
             if (it) {
@@ -101,6 +100,7 @@ fun PostFeedSc(
         }
 
     LaunchedEffect(Unit) {
+        musicVm.songDuration()
         permVm.checkPerm(Manifest.permission.POST_NOTIFICATIONS)
         when (state.value) {
             PermissionState.GRANTED -> {}
@@ -117,7 +117,6 @@ fun PostFeedSc(
                 )
             }
 
-            else -> {}
         }
         listVm.loadPost()
         commentListVm.loadComment()
@@ -147,7 +146,7 @@ fun PostFeedSc(
 
                 )
 
-            Spacer(Modifier.weight(1f))
+            MusicPlayerComp(musicVm)
 
             TextButton(onClick = {
                 navController.navigate(Screens.PostAdd.route)
@@ -178,7 +177,6 @@ fun PostFeedSc(
             ) {
                 items(list.sortedBy { post -> post.username }) { post ->
                     PostItem(
-                        musicVm,
                         post,
                         listVm,
                         commentListVm,
@@ -198,11 +196,10 @@ fun PostFeedSc(
     }
 }
 
-@RequiresApi(Build.VERSION_CODES.O)
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun PostItem(
-    musicVm: MusicViewModel,
+
     post: Post,
     listVm: PostFeedViewModel,
     commentListVm: CommentListViewModel,
@@ -214,19 +211,17 @@ fun PostItem(
     val bottomSheet = rememberModalBottomSheetState()
     var showBottomSheet by remember { mutableStateOf(false) }
     val context = LocalContext.current
-    val isLoading by musicVm.isPlaying.collectAsState()
+
 
     Card(
-        onClick = {
-            cardClicked()
-        },
+
         modifier = Modifier
             .fillMaxWidth()
             .padding(horizontal = 10.dp, vertical = 8.dp),
         shape = RoundedCornerShape(28.dp),
         elevation = CardDefaults.cardElevation(8.dp),
         colors = CardDefaults.cardColors(
-            containerColor = MaterialTheme.colorScheme.surface
+            containerColor = MaterialTheme.colorScheme.onPrimary
         )
     ) {
 
@@ -295,7 +290,7 @@ fun PostItem(
 
             // 🖼 Post Image
             AsyncImage(
-                model = Uri.parse(post.imageUri),
+                model = post.imageUri.toUri(),
                 contentDescription = null,
                 modifier = Modifier
                     .fillMaxWidth()
@@ -353,60 +348,6 @@ fun PostItem(
                     )
                 }
                 Spacer(modifier = Modifier.weight(1f))
-
-                Card(
-                    modifier = Modifier.padding(horizontal = 6.dp),
-                    elevation = CardDefaults.cardElevation(4.dp),
-                    colors = CardDefaults.cardColors(MaterialTheme.colorScheme.onPrimary)) {
-                    Row(
-                        modifier = Modifier.padding(horizontal = 12.dp),
-                        verticalAlignment = Alignment.CenterVertically,
-                        horizontalArrangement = Arrangement.Center
-                    ) {
-                        IconButton(onClick = {
-                            musicVm.toggleMusic()
-                        }) {
-                            Icon(
-                                imageVector =
-                                    when (isLoading) {
-                                        PlayerState.None -> {
-                                            Icons.Rounded.MusicNote
-                                        }
-
-                                        PlayerState.Stoped -> {
-                                            Icons.Rounded.PlayArrow
-                                        }
-
-                                        PlayerState.Playing -> {
-                                            Icons.Rounded.Pause
-                                        }
-                                    },
-
-                                contentDescription = null
-                            )
-                        }
-                        Text(
-                            text =
-                                when (isLoading) {
-                                    PlayerState.None -> {
-                                        "none"
-                                    }
-
-                                    PlayerState.Stoped -> {
-                                        "stoped"
-                                    }
-
-                                    PlayerState.Playing -> {
-                                        "playing"
-                                    }
-                                }
-                        )
-                    }
-
-                }
-
-
-
 
 
             }
@@ -540,3 +481,58 @@ fun CommentItem(item: Comment, post: Post) {
     }
 }
 
+@Composable
+fun MusicPlayerComp(musicVm: MusicViewModel) {
+    val isLoading by musicVm.isPlaying.collectAsState()
+    Card(
+        modifier = Modifier.padding(horizontal = 6.dp),
+        elevation = CardDefaults.cardElevation(4.dp),
+        colors = CardDefaults.cardColors(MaterialTheme.colorScheme.onPrimary)
+    ) {
+        Row(
+            modifier = Modifier.padding(horizontal = 12.dp),
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.Center
+        ) {
+            IconButton(onClick = {
+                musicVm.toggleMusic()
+            }) {
+                Icon(
+                    imageVector =
+                        when (isLoading) {
+                            PlayerState.None -> {
+                                Icons.Rounded.MusicNote
+                            }
+
+                            PlayerState.Stoped -> {
+                                Icons.Rounded.PlayArrow
+                            }
+
+                            PlayerState.Playing -> {
+                                Icons.Rounded.Pause
+                            }
+                        },
+
+                    contentDescription = null
+                )
+            }
+            Text(
+                text =
+                    when (isLoading) {
+                        PlayerState.None -> {
+                            "none"
+                        }
+
+                        PlayerState.Stoped -> {
+                            "stoped"
+                        }
+
+                        PlayerState.Playing -> {
+                            "playing"
+                        }
+                    }
+            )
+        }
+
+    }
+}
