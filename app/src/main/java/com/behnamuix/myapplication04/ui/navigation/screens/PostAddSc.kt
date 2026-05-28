@@ -115,7 +115,7 @@ fun PostAddSc(
     }
 
     val isFormValid =
-        !addVm.imageUri.value.isNullOrEmpty() &&
+        addVm.imageUri.value.isNotEmpty() &&
                 addVm.caption.value.isNotBlank()
 
     Box(
@@ -149,7 +149,7 @@ fun PostAddSc(
                 contentAlignment = Alignment.Center
             ) {
 
-                if (!addVm.imageUri.value.isNullOrEmpty()) {
+                if (addVm.imageUri.value.isNotEmpty()) {
 
                     AsyncImage(
                         model = addVm.imageUri.value,
@@ -241,19 +241,8 @@ fun PostAddSc(
 
 @Composable
 fun PickDateTimeComp(addVm: PostAddViewModel) {
-
     val context = LocalContext.current
     val calendar = Calendar.getInstance()
-    val state = addVm.state.collectAsState()
-    LaunchedEffect(Unit) {
-        if (state.value == true) {
-            Toast.makeText(context, "net connected", Toast.LENGTH_SHORT).show()
-        } else {
-            Toast.makeText(context, "net disconnected!", Toast.LENGTH_SHORT).show()
-
-        }
-    }
-
     OutlinedButton(
         onClick = {
             DatePickerDialog(

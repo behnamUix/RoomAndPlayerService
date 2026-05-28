@@ -50,10 +50,10 @@ val workManagerModule = module {
     single { WorkManager.getInstance(get()) }
     single { NotificationWorkManager(get(), get()) }
 }
+
 @RequiresApi(Build.VERSION_CODES.UPSIDE_DOWN_CAKE)
 val mediaModule = module { single { getMediaPlayer() } }
 
-@RequiresApi(Build.VERSION_CODES.O)
 val repositoryModule = module {
     single<CommentRepository> { CommentRepositoryImpl(get()) }
     single<PostRepository> { PostRepositoryImpl(get()) }
@@ -63,7 +63,6 @@ val repositoryModule = module {
 
 }
 
-@RequiresApi(Build.VERSION_CODES.O)
 val viewModelModule = module {
     viewModel { MusicViewModel(get()) }
     viewModel { NotifViewModel(get()) }
@@ -71,6 +70,6 @@ val viewModelModule = module {
     viewModel { CommentAddViewModel(get()) }
     viewModel { PostFeedViewModel(get()) }
     viewModel { CommentListViewModel(get()) }
-    viewModel { PostAddViewModel(get(), get()) }
+    viewModel { PostAddViewModel(get()) }
     viewModel { PermissionManagerViewModel(get()) }
 }

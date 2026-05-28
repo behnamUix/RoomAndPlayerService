@@ -137,7 +137,7 @@ fun PostFeedSc(
             modifier = Modifier
                 .fillMaxWidth()
                 .padding(8.dp),
-            verticalAlignment = Alignment.CenterVertically
+            verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.SpaceBetween
         ) {
             Text(
                 text = "Posts",
@@ -182,14 +182,7 @@ fun PostFeedSc(
                         commentListVm,
                         commentAddVm,
                         notifVm
-                    ) {
-                        navController
-                            .navigate(
-                                Screens.PostAdd.paramWithArgs(
-                                    post.id.toString()
-                                )
-                            )
-                    }
+                    )
                 }
             }
         }
@@ -199,13 +192,12 @@ fun PostFeedSc(
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun PostItem(
-
     post: Post,
     listVm: PostFeedViewModel,
     commentListVm: CommentListViewModel,
     commentAddVm: CommentAddViewModel,
     getVm: NotifViewModel,
-    cardClicked: () -> Unit
+
 ) {
     var comments = commentListVm.comments.collectAsState()
     val bottomSheet = rememberModalBottomSheetState()
@@ -484,6 +476,7 @@ fun CommentItem(item: Comment, post: Post) {
 @Composable
 fun MusicPlayerComp(musicVm: MusicViewModel) {
     val isLoading by musicVm.isPlaying.collectAsState()
+
     Card(
         modifier = Modifier.padding(horizontal = 6.dp),
         elevation = CardDefaults.cardElevation(4.dp),

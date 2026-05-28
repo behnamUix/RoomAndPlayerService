@@ -21,8 +21,6 @@ interface PostDao {
     @Delete
     suspend fun removePost(post: PostEntity)
 
-    @Update
-    suspend fun updatePost(post: PostEntity)
 
 
 }

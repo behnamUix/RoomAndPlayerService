@@ -23,9 +23,7 @@ class PostRepositoryImpl(private val dao: PostDao) : PostRepository {
         dao.removePost(post.toPostEntity())
     }
 
-    override suspend fun updatePost(post: Post) {
-        dao.updatePost(post.toPostEntity())
-    }
+
 
 
 }
