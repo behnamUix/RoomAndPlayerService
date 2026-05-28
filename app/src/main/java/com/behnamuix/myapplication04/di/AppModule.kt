@@ -59,7 +59,7 @@ val repositoryModule = module {
     single<PostRepository> { PostRepositoryImpl(get()) }
 
     single { NotificationRepository(get(), get()) }
-    single { MusicServiceRepository(get()) }
+    single { MusicServiceRepository(get(),get()) }
 
 }
 

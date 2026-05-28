@@ -2,14 +2,27 @@ package com.behnamuix.myapplication04.repository
 
 import android.content.Context
 import android.content.Intent
-import android.os.Build
-import androidx.annotation.RequiresApi
-import com.behnamuix.myapplication04.media.getMediaPlayer
+import android.media.MediaPlayer
+import android.util.Log
 import com.behnamuix.myapplication04.service.MusicForegroundService
-import com.behnamuix.myapplication04.utils.ext.checkNetwork
+import com.behnamuix.myapplication04.utils.formatSongTime
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.isActive
+import kotlinx.coroutines.launch
+import okhttp3.Dispatcher
 
-class MusicServiceRepository(private val context: Context) {
-    @RequiresApi(Build.VERSION_CODES.O)
+class MusicServiceRepository(private val context: Context, val media: MediaPlayer) {
+    var duration = ""
+    private val _currentPosition = MutableStateFlow(0)
+    val currentPosition: StateFlow<Int> = _currentPosition.asStateFlow()
+
+    private var positionJob: Job? = null
     fun startService() {
         val intent =
             Intent(
@@ -17,19 +30,28 @@ class MusicServiceRepository(private val context: Context) {
                 MusicForegroundService::class.java
             )
         context.startForegroundService(intent)
+        Log.d("LOG", media.duration.toString())
+        duration = formatSongTime(media)
+        startSongPoseTracking()
+
+    }
+
+    private fun startSongPoseTracking() {
+        positionJob?.cancel()
+        positionJob = CoroutineScope(Dispatchers.Default).launch {
+            while (isActive) {
+                val posInSeconds = media.currentPosition
+                _currentPosition.value = posInSeconds
+                delay(1000)
+            }
+        }
     }
 
     fun stopService() {
+        positionJob?.cancel()
         val intent = Intent(context, MusicForegroundService::class.java)
         context.stopService(intent)
     }
 
-    fun getSongDuration(): Int {
-        return if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.UPSIDE_DOWN_CAKE) {
-            getMediaPlayer()?.duration ?: 0
-        } else {
-            return 0
-        }
-    }
 
 }

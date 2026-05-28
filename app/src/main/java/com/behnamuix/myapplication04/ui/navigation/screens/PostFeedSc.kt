@@ -3,9 +3,12 @@ package com.behnamuix.myapplication04.ui.navigation.screens
 import android.Manifest
 import android.content.Intent
 import android.os.Build
+import android.transition.CircularPropagation
+import android.util.Log
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.annotation.RequiresApi
+import androidx.compose.animation.animateContentSize
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -18,6 +21,7 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.windowInsetsEndWidth
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
@@ -34,12 +38,15 @@ import androidx.compose.material.icons.rounded.Share
 import androidx.compose.material.icons.rounded.Upload
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
+import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material3.ProgressIndicatorDefaults
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.rememberModalBottomSheetState
@@ -100,7 +107,7 @@ fun PostFeedSc(
         }
 
     LaunchedEffect(Unit) {
-        musicVm.songDuration()
+
         permVm.checkPerm(Manifest.permission.POST_NOTIFICATIONS)
         when (state.value) {
             PermissionState.GRANTED -> {}
@@ -137,7 +144,8 @@ fun PostFeedSc(
             modifier = Modifier
                 .fillMaxWidth()
                 .padding(8.dp),
-            verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.SpaceBetween
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.SpaceBetween
         ) {
             Text(
                 text = "Posts",
@@ -148,12 +156,16 @@ fun PostFeedSc(
 
             MusicPlayerComp(musicVm)
 
-            TextButton(onClick = {
+            IconButton(onClick = {
                 navController.navigate(Screens.PostAdd.route)
             }) {
-                Icon(Icons.Rounded.Upload, contentDescription = null)
-                Spacer(Modifier.width(4.dp))
-                Text("Upload")
+                Icon(
+                    modifier = Modifier.size(32.dp),
+                    imageVector = Icons.Rounded.Upload,
+                    contentDescription = null,
+                    tint = MaterialTheme.colorScheme.primary
+                )
+
             }
         }
 
@@ -198,8 +210,8 @@ fun PostItem(
     commentAddVm: CommentAddViewModel,
     getVm: NotifViewModel,
 
-) {
-    var comments = commentListVm.comments.collectAsState()
+    ) {
+    val comments = commentListVm.comments.collectAsState()
     val bottomSheet = rememberModalBottomSheetState()
     var showBottomSheet by remember { mutableStateOf(false) }
     val context = LocalContext.current
@@ -473,59 +485,107 @@ fun CommentItem(item: Comment, post: Post) {
     }
 }
 
+@RequiresApi(Build.VERSION_CODES.UPSIDE_DOWN_CAKE)
 @Composable
 fun MusicPlayerComp(musicVm: MusicViewModel) {
-    val isLoading by musicVm.isPlaying.collectAsState()
+
+    val isLoading by musicVm.playerState.collectAsState()
+    var showProgress by remember { mutableStateOf(false) }
 
     Card(
-        modifier = Modifier.padding(horizontal = 6.dp),
+        onClick = {
+            musicVm.toggleMusic()
+        },
+        modifier = Modifier
+            .padding(horizontal = 6.dp)
+            .fillMaxWidth(0.7f),
         elevation = CardDefaults.cardElevation(4.dp),
         colors = CardDefaults.cardColors(MaterialTheme.colorScheme.onPrimary)
     ) {
-        Row(
-            modifier = Modifier.padding(horizontal = 12.dp),
-            verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.Center
+        Column(
+            horizontalAlignment = Alignment.CenterHorizontally,
+            verticalArrangement = Arrangement.Center
         ) {
-            IconButton(onClick = {
-                musicVm.toggleMusic()
-            }) {
-                Icon(
-                    imageVector =
+            Row(
+                modifier = Modifier
+
+                    .padding(end = 16.dp)
+                    .animateContentSize(),
+
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.SpaceAround
+            ) {
+                IconButton(onClick = {
+
+                }) {
+                    Icon(
+                        modifier = Modifier.size(18.dp),
+                        imageVector =
+                            when (isLoading) {
+                                PlayerState.None -> {
+                                    Icons.Rounded.MusicNote
+                                }
+
+                                PlayerState.Stoped -> {
+                                    Icons.Rounded.PlayArrow
+                                }
+
+                                PlayerState.Playing -> {
+                                    Icons.Rounded.Pause
+                                }
+                            },
+
+                        contentDescription = null
+                    )
+                }
+                Text(
+                    text =
                         when (isLoading) {
                             PlayerState.None -> {
-                                Icons.Rounded.MusicNote
+                                "tap on this😉"
+
                             }
 
                             PlayerState.Stoped -> {
-                                Icons.Rounded.PlayArrow
+                                "stoped"
+
                             }
 
                             PlayerState.Playing -> {
-                                Icons.Rounded.Pause
+                                "playing(${musicVm.duraton.value})"
                             }
-                        },
-
-                    contentDescription = null
+                        }
                 )
-            }
-            Text(
-                text =
-                    when (isLoading) {
-                        PlayerState.None -> {
-                            "none"
-                        }
-
-                        PlayerState.Stoped -> {
-                            "stoped"
-                        }
-
-                        PlayerState.Playing -> {
-                            "playing"
-                        }
+                showProgress = when (isLoading) {
+                    PlayerState.None -> {
+                        false
                     }
-            )
-        }
 
+                    PlayerState.Playing -> {
+                        true
+                    }
+
+                    PlayerState.Stoped -> {
+                        false
+                    }
+                }
+                Spacer(Modifier.width(8.dp))
+                if (showProgress) {
+                    CircularProgressIndicator(modifier = Modifier.size(18.dp), strokeWidth = 2.dp)
+                }
+
+
+            }
+            Log.d("LOG", musicVm.pose.toFloat().toString())
+            LinearProgressIndicator(
+                progress = { musicVm.pose.toFloat() },
+                modifier = Modifier.fillMaxWidth(),
+                color = ProgressIndicatorDefaults.linearColor,
+                trackColor = ProgressIndicatorDefaults.linearTrackColor,
+                strokeCap = ProgressIndicatorDefaults.LinearStrokeCap,
+            )
+
+        }
     }
+
 }

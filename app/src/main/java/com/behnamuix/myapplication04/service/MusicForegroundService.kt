@@ -27,10 +27,12 @@ class MusicForegroundService : Service() {
         if (mediaPlayer == null) {
             mediaPlayer = getMediaPlayer()
         }
-        Log.d("PLAYER", "loading")
+        Log.i("PLAYER", "loading")
         mediaPlayer?.setOnPreparedListener { mp ->
             mp.start()
-            Log.d("PLAYER", "playing...")
+            Log.i("PLAYER", "playing...")
+
+
         }
 
 
@@ -38,11 +40,15 @@ class MusicForegroundService : Service() {
     }
 
 
+
     override fun onDestroy() {
+
         mediaPlayer?.release()
         mediaPlayer = null
         super.onDestroy()
     }
 
     override fun onBind(intent: Intent?): IBinder? = null
+
 }
+
