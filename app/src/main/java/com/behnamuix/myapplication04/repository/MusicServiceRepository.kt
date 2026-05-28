@@ -19,10 +19,7 @@ import okhttp3.Dispatcher
 
 class MusicServiceRepository(private val context: Context, val media: MediaPlayer) {
     var duration = ""
-    private val _currentPosition = MutableStateFlow(0)
-    val currentPosition: StateFlow<Int> = _currentPosition.asStateFlow()
 
-    private var positionJob: Job? = null
     fun startService() {
         val intent =
             Intent(
@@ -32,23 +29,13 @@ class MusicServiceRepository(private val context: Context, val media: MediaPlaye
         context.startForegroundService(intent)
         Log.d("LOG", media.duration.toString())
         duration = formatSongTime(media)
-        startSongPoseTracking()
+
 
     }
 
-    private fun startSongPoseTracking() {
-        positionJob?.cancel()
-        positionJob = CoroutineScope(Dispatchers.Default).launch {
-            while (isActive) {
-                val posInSeconds = media.currentPosition
-                _currentPosition.value = posInSeconds
-                delay(1000)
-            }
-        }
-    }
+
 
     fun stopService() {
-        positionJob?.cancel()
         val intent = Intent(context, MusicForegroundService::class.java)
         context.stopService(intent)
     }

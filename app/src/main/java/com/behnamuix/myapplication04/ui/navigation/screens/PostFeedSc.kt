@@ -56,6 +56,7 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -80,6 +81,7 @@ import com.behnamuix.myapplication04.viewModel.permission.PermissionState
 import com.behnamuix.myapplication04.viewModel.ui.comment.CommentAddViewModel
 import com.behnamuix.myapplication04.viewModel.ui.comment.CommentListViewModel
 import com.behnamuix.myapplication04.viewModel.ui.post.PostFeedViewModel
+import kotlinx.coroutines.launch
 import org.koin.androidx.compose.koinViewModel
 import kotlin.random.Random
 
@@ -488,104 +490,97 @@ fun CommentItem(item: Comment, post: Post) {
 @RequiresApi(Build.VERSION_CODES.UPSIDE_DOWN_CAKE)
 @Composable
 fun MusicPlayerComp(musicVm: MusicViewModel) {
-
     val isLoading by musicVm.playerState.collectAsState()
     var showProgress by remember { mutableStateOf(false) }
 
+
     Card(
         onClick = {
-            musicVm.toggleMusic()
+
+                musicVm.toggleMusic()
+
+
+
         },
         modifier = Modifier
-            .padding(horizontal = 6.dp)
-            .fillMaxWidth(0.7f),
+            .padding(horizontal = 6.dp),
         elevation = CardDefaults.cardElevation(4.dp),
         colors = CardDefaults.cardColors(MaterialTheme.colorScheme.onPrimary)
     ) {
-        Column(
-            horizontalAlignment = Alignment.CenterHorizontally,
-            verticalArrangement = Arrangement.Center
+        Row(
+            modifier = Modifier
+
+                .padding(end = 16.dp)
+                .animateContentSize(),
+
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.SpaceAround
         ) {
-            Row(
-                modifier = Modifier
+            IconButton(onClick = {
 
-                    .padding(end = 16.dp)
-                    .animateContentSize(),
-
-                verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.SpaceAround
-            ) {
-                IconButton(onClick = {
-
-                }) {
-                    Icon(
-                        modifier = Modifier.size(18.dp),
-                        imageVector =
-                            when (isLoading) {
-                                PlayerState.None -> {
-                                    Icons.Rounded.MusicNote
-                                }
-
-                                PlayerState.Stoped -> {
-                                    Icons.Rounded.PlayArrow
-                                }
-
-                                PlayerState.Playing -> {
-                                    Icons.Rounded.Pause
-                                }
-                            },
-
-                        contentDescription = null
-                    )
-                }
-                Text(
-                    text =
+            }) {
+                Icon(
+                    modifier = Modifier.size(18.dp),
+                    imageVector =
                         when (isLoading) {
                             PlayerState.None -> {
-                                "tap on this😉"
-
+                                Icons.Rounded.MusicNote
                             }
 
                             PlayerState.Stoped -> {
-                                "stoped"
-
+                                Icons.Rounded.PlayArrow
                             }
 
                             PlayerState.Playing -> {
-                                "playing(${musicVm.duraton.value})"
+                                Icons.Rounded.Pause
                             }
-                        }
+                        },
+
+                    contentDescription = null
                 )
-                showProgress = when (isLoading) {
-                    PlayerState.None -> {
-                        false
-                    }
-
-                    PlayerState.Playing -> {
-                        true
-                    }
-
-                    PlayerState.Stoped -> {
-                        false
-                    }
-                }
-                Spacer(Modifier.width(8.dp))
-                if (showProgress) {
-                    CircularProgressIndicator(modifier = Modifier.size(18.dp), strokeWidth = 2.dp)
-                }
-
-
             }
-            Log.d("LOG", musicVm.pose.toFloat().toString())
-            LinearProgressIndicator(
-                progress = { musicVm.pose.toFloat() },
-                modifier = Modifier.fillMaxWidth(),
-                color = ProgressIndicatorDefaults.linearColor,
-                trackColor = ProgressIndicatorDefaults.linearTrackColor,
-                strokeCap = ProgressIndicatorDefaults.LinearStrokeCap,
+            Text(
+                text =
+                    when (isLoading) {
+                        PlayerState.None -> {
+                            "tap on this😉"
+
+                        }
+
+                        PlayerState.Stoped -> {
+                            "stoped"
+
+                        }
+
+                        PlayerState.Playing -> {
+                            "playing(${musicVm.duraton.value})"
+                        }
+                    }
             )
+            showProgress = when (isLoading) {
+                PlayerState.None -> {
+                    false
+                }
+
+                PlayerState.Playing -> {
+                    true
+                }
+
+                PlayerState.Stoped -> {
+                    false
+                }
+            }
+            Spacer(Modifier.width(8.dp))
+            if (showProgress) {
+                CircularProgressIndicator(modifier = Modifier.size(18.dp), strokeWidth = 2.dp)
+            }
+
+
 
         }
+
+
+
     }
 
 }
